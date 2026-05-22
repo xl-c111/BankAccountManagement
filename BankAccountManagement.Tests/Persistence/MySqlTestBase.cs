@@ -1,13 +1,13 @@
 using BankAccountManagement.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace BankAccountManagement.Tests.Integration;
+namespace BankAccountManagement.Tests.Persistence;
 
-public abstract class MySqlIntegrationTestBase : IDisposable
+public abstract class MySqlTestBase : IDisposable
 {
   protected readonly BankDbContext Context;
 
-  protected MySqlIntegrationTestBase()
+  protected MySqlTestBase()
   {
     string? connectionString = Environment.GetEnvironmentVariable("BANK_TEST_DB_CONNECTION");
     if (string.IsNullOrWhiteSpace(connectionString))

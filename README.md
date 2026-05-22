@@ -1,164 +1,69 @@
 # BankAccountManagement
 
-A .NET 10 console-based bank account management project using EF Core and MySQL.  
-The project models customers and accounts with inheritance mapping, persists data with code-first migrations, and includes unit/integration testing scaffolding.
+A .NET 10 console project for bank account management using EF Core + MySQL, with xUnit tests.
 
-## Tech Stack
+## Stack
 - .NET 10
 - C#
-- Entity Framework Core 10
-- MySql.EntityFrameworkCore 10
+- EF Core 10 (`MySql.EntityFrameworkCore`)
 - MySQL
-- xUnit (testing)
+- xUnit
 
-## Project Structure
+## Project Layout
 ```text
 BankAccountManagement/
-├── Controller/
-│   └── AccountController.cs
 ├── Application/
-│   └── DemoRunner.cs
+├── Controller/
 ├── Models/
-│   ├── Customer.cs
-│   ├── Person.cs
-│   ├── Company.cs
-│   ├── Account.cs
-│   ├── CheckingAccount.cs
-│   └── SavingsAccount.cs
 ├── Persistence/
-│   └── BankDbContext.cs
 ├── Migrations/
-├── Program.cs
 ├── BankAccountManagement.Tests/
-│   ├── Models/
-│   └── Integration/
-└── TESTING_STRATEGY.md
+├── Program.cs
+├── BankAccountManagement.csproj
+└── BankAccountManagement.slnx
 ```
 
-## Domain Overview
-
-### Customer hierarchy
-- `Customer` (abstract base)
-- `Person`
-- `Company`
-
-### Account hierarchy
-- `Account` (abstract base)
-- `CheckingAccount`
-- `SavingsAccount`
-
-### Business behavior highlights
-- `Person.ChargeAllAccounts(amount)`: charges the same amount for each account.
-- `Company.ChargeAllAccounts(amount)`: charges double for `SavingsAccount`, normal for others.
-- `SavingsAccount.Withdraw(amount)`: returns `0` when amount is greater than balance.
-- Static ID generators are currently used for `CustomerId` and `AccountId`.
-
-## Database Design
-- Provider: MySQL via EF Core.
-- Mapping strategy:
-  - TPH (Table-per-Hierarchy) for `Customer` using discriminator `customer_type`
-  - TPH for `Account` using discriminator `account_type`
-- Main tables:
-  - `customers`
-  - `accounts`
-- Relationship:
-  - `Customer (1) -> (many) Account` with cascade delete.
-
-Connection is configured in `BankDbContext`:
-- Uses `BANK_DB_CONNECTION` environment variable when set.
-- Falls back to default local connection string when not set.
-
-## Getting Started
-
-### 1. Prerequisites
-- .NET SDK 10+
-- MySQL server running locally or remotely
-
-### 2. Configure connection string (recommended)
+## Run
+1. Clone and enter project:
 ```bash
-export BANK_DB_CONNECTION="server=localhost;uid=root;pwd=MyPass123;database=bank_account_management"
+git clone <your-repository-url>
+cd BankAccountManagement
 ```
 
-You can copy `.env.example` to `.env` for local reference, but do not commit real secrets.
+2. Configure DB connection (required):
+```bash
+export BANK_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management"
+```
 
-### 3. Restore and build
+You can also store this value in local `.env` (copied from `.env.example`). Do not commit real secrets.
+
+3. Build and migrate:
 ```bash
 dotnet restore BankAccountManagement.slnx
 dotnet build BankAccountManagement.slnx
-```
-
-### 4. Apply migration (if needed)
-```bash
 dotnet ef database update
 ```
 
-### 5. Run
+4. Start app:
 ```bash
 dotnet run
 ```
 
-## Testing
-Testing strategy is documented in:
-- `TESTING_STRATEGY.md`
-
-### Run all tests
+## Test
+Run all tests:
 ```bash
 dotnet test BankAccountManagement.Tests
 ```
 
-### MySQL integration tests
-Integration tests are scaffolded and currently marked with `Skip` by default to avoid accidental DB writes.
+MySQL integration tests are currently scaffolded with `Skip` by default.
 
-To enable:
-1. Set a dedicated test DB:
-```bash
-export BANK_TEST_DB_CONNECTION="server=localhost;uid=root;pwd=MyPass123;database=bank_account_management_test"
-```
-2. Remove `Skip = ...` from facts in:
-   - `BankAccountManagement.Tests/Integration/AccountControllerMySqlTests.cs`
-3. Run only integration tests:
-```bash
-dotnet test BankAccountManagement.Tests --filter "Category=MySqlIntegration"
-```
-
-## Test Coverage
-Generate coverage data:
-```bash
-dotnet test BankAccountManagement.Tests --collect:"XPlat Code Coverage"
-```
-
-Generate HTML report (requires ReportGenerator):
+## Coverage
+Generate and open coverage report (clean run):
 ```bash
 dotnet tool install -g dotnet-reportgenerator-globaltool
 export PATH="$PATH:$HOME/.dotnet/tools"
-reportgenerator -reports:"BankAccountManagement.Tests/TestResults/**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html
-```
-
-Open report:
-```bash
+rm -rf BankAccountManagement.Tests/TestResults coverage-report
+dotnet test BankAccountManagement.Tests --collect:"XPlat Code Coverage" --settings coverage.runsettings
+reportgenerator -reports:"BankAccountManagement.Tests/TestResults/*/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html
 open coverage-report/index.html
 ```
-
-## Developer Workflow
-Run local quality checks:
-```bash
-./scripts/check.sh
-```
-
-Clean generated artifacts (`bin/`, `obj/`, `TestResults/`, `coverage-report/`):
-```bash
-./scripts/clean.sh
-```
-
-## Current Implementation Notes
-- `Program.cs` currently runs a demo workflow and writes test data into DB.
-- `AccountController` persists immediately (`SaveChanges()` inside methods).
-- Static ID generation is application-managed, not DB auto-increment.
-
-## Recommended Next Improvements
-1. Move connection string fully to configuration files and environment-based profiles.
-2. Refactor demo logic from `Program.cs` into application services.
-3. Add CI pipeline with:
-   - PR: unit tests + lint/build
-   - Nightly/main: MySQL integration tests + coverage artifact
-4. Replace static ID strategy with DB-generated keys or dedicated ID service.

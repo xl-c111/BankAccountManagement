@@ -27,11 +27,14 @@ public partial class BankDbContext : DbContext
   {
     if (!optionsBuilder.IsConfigured)
     {
-      string? connectionString = Environment.GetEnvironmentVariable("BANK_DB_CONNECTION");
+      string? connectionString =
+        Environment.GetEnvironmentVariable("BANK_DB_CONNECTION")
+        ?? EnvFileLoader.GetValue("BANK_DB_CONNECTION");
+
       if (string.IsNullOrWhiteSpace(connectionString))
       {
         throw new InvalidOperationException(
-          "Missing BANK_DB_CONNECTION environment variable. Set it before running the application.");
+          "Missing BANK_DB_CONNECTION. Set an environment variable or add it to .env.");
       }
 
       optionsBuilder.UseMySQL(connectionString);
@@ -56,7 +59,7 @@ public partial class BankDbContext : DbContext
 
       entity.Property(e => e.Email).HasMaxLength(100).HasColumnName("email");
 
-      entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+      entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("created_at");
 
       entity.Property(e => e.IsActive).HasColumnName("is_active");
 
@@ -66,7 +69,7 @@ public partial class BankDbContext : DbContext
 
     modelBuilder.Entity<Person>(entity =>
     {
-      entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
+      entity.Property(e => e.DateOfBirth).HasColumnType("date").HasColumnName("date_of_birth");
 
       entity.Property(e => e.Occupation).HasMaxLength(200).HasColumnName("occupation");
     });
@@ -90,7 +93,7 @@ public partial class BankDbContext : DbContext
 
       entity.Property(e => e.Balance).IsRequired().HasColumnType("decimal(18,2)").HasColumnName("balance");
 
-      entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+      entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("created_at");
 
       entity.Property(e => e.IsActive).HasColumnName("is_active");
 

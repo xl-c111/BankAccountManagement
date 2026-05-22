@@ -6,12 +6,12 @@
 - Prevent migration/schema regressions in CI.
 
 ## Test Layers
-1. Unit tests (`BankAccountManagement.Tests/Models`)
-- Scope: Domain logic in `Models` only.
-- No database, no EF runtime dependency in assertions.
+1. Unit tests (`BankAccountManagement.Tests/Models`, `Controller`, `Application`, `Persistence`)
+- Scope: domain logic, controller behavior, demo workflow, and local configuration helpers.
+- Fast tests use EF Core InMemory where persistence behavior is needed without MySQL.
 - Run on every commit/PR.
 
-2. MySQL integration tests (`BankAccountManagement.Tests/Integration`)
+2. MySQL integration tests (`BankAccountManagement.Tests/Controller` + `BankAccountManagement.Tests/Persistence`)
 - Scope: `AccountController + BankDbContext + MySQL`.
 - Validate CRUD, TPH mapping, cascade delete, and relationship loading.
 - Run on PR or nightly pipeline.
@@ -19,6 +19,10 @@
 3. Migration smoke tests
 - Apply migrations to a clean MySQL test schema.
 - Fail fast if schema creation/migration breaks.
+
+4. Coverage
+- Coverage uses `coverage.runsettings`.
+- The coverage report includes project code and excludes EF migration files only.
 
 ## Framework and Tooling
 - Single framework: `xUnit` for all tests.
@@ -35,9 +39,9 @@ dotnet test BankAccountManagement.Tests
 2. Enable MySQL integration tests:
 - Set test database connection:
 ```bash
-export BANK_TEST_DB_CONNECTION="server=localhost;uid=root;pwd=MyPass123;database=bank_account_management_test"
+export BANK_TEST_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management_test"
 ```
-- In `Integration/AccountControllerMySqlTests.cs`, remove `Skip = ...` from `[Fact]`.
+- In `Controller/AccountControllerTests.cs`, remove `Skip = ...` from `[Fact]`.
 - Run:
 ```bash
 dotnet test BankAccountManagement.Tests --filter "Category=MySqlIntegration"

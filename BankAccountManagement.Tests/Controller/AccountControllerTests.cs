@@ -1,14 +1,14 @@
 using BankAccountManagement.Controller;
 using BankAccountManagement.Models;
-using Microsoft.EntityFrameworkCore;
+using BankAccountManagement.Tests.Persistence;
 
-namespace BankAccountManagement.Tests.Integration;
+namespace BankAccountManagement.Tests.Controller.Persistence;
 
-public class AccountControllerMySqlTests : MySqlIntegrationTestBase
+public class AccountControllerTests : MySqlTestBase
 {
   [Fact(Skip = "Set BANK_TEST_DB_CONNECTION and remove Skip to run against MySQL.")]
   [Trait("Category", "MySqlIntegration")]
-  public void Database_Is_Empty_AtStart()
+  public void DatabaseShouldStartEmpty()
   {
     AccountController controller = new(Context);
 
@@ -18,7 +18,7 @@ public class AccountControllerMySqlTests : MySqlIntegrationTestBase
 
   [Fact(Skip = "Set BANK_TEST_DB_CONNECTION and remove Skip to run against MySQL.")]
   [Trait("Category", "MySqlIntegration")]
-  public void Add_And_Remove_Customer_PersistsInMySql()
+  public void AddAndRemoveCustomerShouldPersistInMySql()
   {
     AccountController controller = new(Context);
 
@@ -41,7 +41,7 @@ public class AccountControllerMySqlTests : MySqlIntegrationTestBase
 
   [Fact(Skip = "Set BANK_TEST_DB_CONNECTION and remove Skip to run against MySQL.")]
   [Trait("Category", "MySqlIntegration")]
-  public void Tph_Discriminator_Works_ForPersonAndCompany()
+  public void TphDiscriminatorShouldWorkForPersonAndCompany()
   {
     AccountController controller = new(Context);
 
