@@ -6,7 +6,7 @@ public class Company : Customer
   public string ACN { get; private set; } = null!;
   public string? Industry { get; set; }
 
-  public Company()
+  protected Company()
   {
 
   }

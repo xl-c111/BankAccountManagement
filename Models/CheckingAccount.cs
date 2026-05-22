@@ -4,10 +4,7 @@ public class CheckingAccount : Account
 {
   public int NextCheckNumber { get; private set; }
 
-  protected CheckingAccount()
-  {
-  }
-  public CheckingAccount(bool initializeCheckNumber = true)
+  public CheckingAccount()
   {
     NextCheckNumber = 1;
   }

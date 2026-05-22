@@ -1,4 +1,5 @@
 using BankAccountManagement.Models;
+using System.Reflection;
 
 namespace BankAccountManagement.Tests.Models;
 
@@ -37,10 +38,17 @@ public class CompanyTests
   }
 
   [Fact]
-  public void ParameterlessConstructor_ShouldCreateObject()
+  public void ParameterlessConstructor_ShouldBeProtected()
   {
-    Company company = new();
+    ConstructorInfo? publicConstructor = typeof(Company).GetConstructor(Type.EmptyTypes);
+    ConstructorInfo? protectedConstructor = typeof(Company).GetConstructor(
+      BindingFlags.Instance | BindingFlags.NonPublic,
+      binder: null,
+      types: Type.EmptyTypes,
+      modifiers: null);
 
-    Assert.NotNull(company);
+    Assert.Null(publicConstructor);
+    Assert.NotNull(protectedConstructor);
+    Assert.True(protectedConstructor.IsFamily);
   }
 }

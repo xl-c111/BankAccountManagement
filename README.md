@@ -2,6 +2,15 @@
 
 A .NET 10 console project for bank account management using EF Core + MySQL, with xUnit tests.
 
+## Features
+- Create and remove customers.
+- Support `Person` and `Company` customer types.
+- Create and remove checking and savings accounts.
+- Auto-generate customer IDs from `2_000_000`, incrementing by `7`.
+- Auto-generate account IDs from `1_000`, incrementing by `5`.
+- Deposit, withdraw, correct account balance, add savings interest, and issue check numbers.
+- Persist customers and accounts to MySQL using EF Core migrations.
+
 ## Stack
 - .NET 10
 - C#
@@ -23,10 +32,17 @@ BankAccountManagement/
 └── BankAccountManagement.slnx
 ```
 
+## Database
+- Database provider: MySQL.
+- EF Core mapping uses inheritance discriminators for customers and accounts.
+- Migrations are stored in `Migrations/`.
+- Connection string is read from `BANK_DB_CONNECTION` or local `.env`.
+- Real secrets should stay in `.env` and must not be committed.
+
 ## Run
 1. Clone and enter project:
 ```bash
-git clone <your-repository-url>
+git clone <https://github.com/xl-c111/BankAccountManagement.git>
 cd BankAccountManagement
 ```
 
@@ -57,6 +73,13 @@ dotnet test BankAccountManagement.Tests
 
 MySQL integration tests are currently scaffolded with `Skip` by default.
 
+To run MySQL database tests, set a separate test database connection:
+```bash
+export BANK_TEST_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management_test"
+```
+
+Then remove `Skip = ...` from the MySQL tests in `BankAccountManagement.Tests/Controller/AccountControllerTests.cs`.
+
 ## Coverage
 Generate and open coverage report (clean run):
 ```bash
@@ -67,3 +90,5 @@ dotnet test BankAccountManagement.Tests --collect:"XPlat Code Coverage" --settin
 reportgenerator -reports:"BankAccountManagement.Tests/TestResults/*/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:Html
 open coverage-report/index.html
 ```
+
+Coverage uses `coverage.runsettings`, which excludes EF migration files from the coverage calculation.

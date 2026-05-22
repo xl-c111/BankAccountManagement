@@ -5,7 +5,7 @@ public class Person : Customer
   public DateTime DateOfBirth { get; set; }
   public string? Occupation { get; set; }
 
-  public Person() { }
+  protected Person() { }
 
   public Person(string name, string address) : base(name, address)
   {
