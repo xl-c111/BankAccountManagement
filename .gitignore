@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# .NET build artifacts
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+Debug/
+Release/
+artifacts/
+publish/
+
+# Test artifacts
+TestResults/
+coverage-report/
+*.coverage
+*.trx
+coverage/
+*.coveragexml
+
+# Rider / VS / VS Code
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Local tools/cache
+.cache/
