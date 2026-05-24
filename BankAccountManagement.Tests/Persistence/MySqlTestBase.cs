@@ -9,11 +9,14 @@ public abstract class MySqlTestBase : IDisposable
 
   protected MySqlTestBase()
   {
-    string? connectionString = Environment.GetEnvironmentVariable("BANK_TEST_DB_CONNECTION");
+    string? connectionString =
+      Environment.GetEnvironmentVariable("BANK_TEST_DB_CONNECTION")
+      ?? EnvFileLoader.GetValue("BANK_TEST_DB_CONNECTION");
+
     if (string.IsNullOrWhiteSpace(connectionString))
     {
       throw new InvalidOperationException(
-        "Set BANK_TEST_DB_CONNECTION before running MySQL integration tests.");
+        "Missing BANK_TEST_DB_CONNECTION. Set an environment variable or add it to .env.");
     }
 
     DbContextOptions<BankDbContext> options = new DbContextOptionsBuilder<BankDbContext>()

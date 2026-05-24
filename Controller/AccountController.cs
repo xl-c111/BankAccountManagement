@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BankAccountManagement.Controller;
 
+/// <summary>
+/// Coordinates customer and account operations with the database.
+/// </summary>
 public class AccountController
 {
   public List<Customer> Customers = new List<Customer>();
@@ -16,6 +19,16 @@ public class AccountController
     _context = context;
   }
 
+  /// <summary>
+  /// Creates a person or company customer and saves it.
+  /// </summary>
+  /// <param name="name">The customer name.</param>
+  /// <param name="address">The customer address.</param>
+  /// <param name="customerType">The customer type: person or company.</param>
+  /// <param name="abn">The company ABN. Required when customer type is company.</param>
+  /// <param name="acn">The company ACN. Required when customer type is company.</param>
+  /// <returns>The created customer.</returns>
+  /// <exception cref="ArgumentException">Thrown when input values are invalid.</exception>
   public Customer CreateCustomer(string name, string address, string customerType, string? abn = null, string? acn = null)
   {
     if (string.IsNullOrWhiteSpace(customerType))
@@ -61,6 +74,13 @@ public class AccountController
     throw new ArgumentException("Customer type must be either 'person' or 'company'.");
   }
 
+  /// <summary>
+  /// Creates a checking or savings account for a customer and saves it.
+  /// </summary>
+  /// <param name="customer">The customer who owns the account.</param>
+  /// <param name="account">The account type: checking or savings.</param>
+  /// <returns>The created account.</returns>
+  /// <exception cref="ArgumentException">Thrown when the customer or account type is invalid.</exception>
   public Account CreateAccount(Customer customer, string account)
   {
     if (customer == null)
@@ -112,6 +132,11 @@ public class AccountController
     throw new ArgumentException("Account type must be either 'checking' or 'savings'.");
   }
 
+  /// <summary>
+  /// Removes a customer and all accounts owned by that customer.
+  /// </summary>
+  /// <param name="customer">The customer to remove.</param>
+  /// <exception cref="ArgumentException">Thrown when the customer is null.</exception>
   public void RemoveCustomer(Customer customer)
   {
     if (customer == null)
@@ -135,6 +160,11 @@ public class AccountController
     _context.SaveChanges();
   }
 
+  /// <summary>
+  /// Removes an account from the controller, customer lists, and database.
+  /// </summary>
+  /// <param name="account">The account to remove.</param>
+  /// <exception cref="ArgumentException">Thrown when the account is null.</exception>
   public void RemoveAccount(Account account)
   {
     if (account == null)
@@ -159,6 +189,10 @@ public class AccountController
     _context.SaveChanges();
   }
 
+  /// <summary>
+  /// Returns all customers with their accounts.
+  /// </summary>
+  /// <returns>A list of customers including their accounts.</returns>
   public List<Customer> GetCustomers()
   {
     return _context.Customers
@@ -166,6 +200,10 @@ public class AccountController
       .ToList();
   }
 
+  /// <summary>
+  /// Returns all accounts.
+  /// </summary>
+  /// <returns>A list of all accounts.</returns>
   public List<Account> GetAccounts()
   {
     return _context.Accounts.ToList();

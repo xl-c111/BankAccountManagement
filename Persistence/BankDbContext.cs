@@ -28,6 +28,7 @@ public partial class BankDbContext : DbContext
     if (!optionsBuilder.IsConfigured)
     {
       string? connectionString =
+        // check the system env variable. If  that does not exist, it checks the local .env file
         Environment.GetEnvironmentVariable("BANK_DB_CONNECTION")
         ?? EnvFileLoader.GetValue("BANK_DB_CONNECTION");
 

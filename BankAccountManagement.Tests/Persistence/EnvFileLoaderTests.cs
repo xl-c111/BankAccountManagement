@@ -55,6 +55,20 @@ public class EnvFileLoaderTests : IDisposable
     Assert.Null(value);
   }
 
+  [Fact]
+  public void GetValue_WhenLineHasNoKey_ShouldIgnoreLine()
+  {
+    File.WriteAllLines(_envFilePath, new[]
+    {
+      "=missing-key",
+      "BANK_DB_CONNECTION=valid-value"
+    });
+
+    string? value = EnvFileLoader.GetValue("BANK_DB_CONNECTION", _envFilePath);
+
+    Assert.Equal("valid-value", value);
+  }
+
   public void Dispose()
   {
     if (File.Exists(_envFilePath))

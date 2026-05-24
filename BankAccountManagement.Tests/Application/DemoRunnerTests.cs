@@ -53,6 +53,26 @@ public class DemoRunnerTests : IDisposable
     Assert.Contains("Next Check Number: 2", output);
   }
 
+  [Fact]
+  public void Run_WhenDatabaseHasExistingRecords_ShouldContinueGeneratedIds()
+  {
+    Person existingCustomer = new("Existing Customer", "Melbourne");
+    CheckingAccount existingAccount = new();
+    existingCustomer.AddAccount(existingAccount);
+    _context.Customers.Add(existingCustomer);
+    _context.Accounts.Add(existingAccount);
+    _context.SaveChanges();
+
+    DemoRunner runner = new(_context);
+
+    runner.Run();
+
+    Assert.Equal(3, _context.Customers.Count());
+    Assert.Equal(5, _context.Accounts.Count());
+    Assert.Contains(_context.Customers, customer => customer.CustomerId > existingCustomer.CustomerId);
+    Assert.Contains(_context.Accounts, account => account.AccountId > existingAccount.AccountId);
+  }
+
   public void Dispose()
   {
     Console.SetOut(_originalOutput);

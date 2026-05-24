@@ -1,5 +1,8 @@
 namespace BankAccountManagement.Models;
 
+/// <summary>
+/// Base class for person and company customers.
+/// </summary>
 public abstract class Customer
 {
   private static long nextCustomerId = 2_000_000;
@@ -47,6 +50,10 @@ public abstract class Customer
     IsActive = true;
   }
 
+  /// <summary>
+  /// Sets the next generated customer id when existing records are already stored.
+  /// </summary>
+  /// <param name="nextId">The next customer id to use if it is greater than the current value.</param>
   public static void SetNextCustomerId(long nextId)
   {
     if (nextId > nextCustomerId)
@@ -55,6 +62,11 @@ public abstract class Customer
     }
   }
 
+  /// <summary>
+  /// Adds an account to this customer.
+  /// </summary>
+  /// <param name="account">The account to add.</param>
+  /// <exception cref="ArgumentException">Thrown when the account is null or already exists.</exception>
   public void AddAccount(Account account)
   {
     ValidateAccountNotNull(account);
@@ -67,6 +79,11 @@ public abstract class Customer
     Accounts.Add(account);
   }
 
+  /// <summary>
+  /// Removes an account from this customer.
+  /// </summary>
+  /// <param name="account">The account to remove.</param>
+  /// <exception cref="ArgumentException">Thrown when the account is null or does not exist.</exception>
   public void RemoveAccount(Account account)
   {
     ValidateAccountExists(account);
@@ -74,11 +91,19 @@ public abstract class Customer
     Accounts.Remove(account);
   }
 
+  /// <summary>
+  /// Marks the customer as inactive.
+  /// </summary>
   public void Deactivate()
   {
     IsActive = false;
   }
 
+  /// <summary>
+  /// Charges all accounts owned by this customer.
+  /// </summary>
+  /// <param name="amount">The amount to charge.</param>
+  /// <exception cref="ArgumentException">Thrown when the amount is less than or equal to zero.</exception>
   public abstract void ChargeAllAccounts(double amount);
 
   private void ValidateAccountNotNull(Account account)

@@ -36,7 +36,7 @@ BankAccountManagement/
 - Database provider: MySQL.
 - EF Core mapping uses inheritance discriminators for customers and accounts.
 - Migrations are stored in `Migrations/`.
-- Connection string is read from `BANK_DB_CONNECTION` or local `.env`.
+- Connection strings are read from environment variables or local `.env`.
 - Real secrets should stay in `.env` and must not be committed.
 
 ## Run
@@ -77,6 +77,8 @@ To run MySQL database tests, set a separate test database connection:
 ```bash
 export BANK_TEST_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management_test"
 ```
+
+This value can also be stored in local `.env`.
 
 Then remove `Skip = ...` from the MySQL tests in `BankAccountManagement.Tests/Controller/AccountControllerTests.cs`.
 
