@@ -46,21 +46,28 @@ git clone <https://github.com/xl-c111/BankAccountManagement.git>
 cd BankAccountManagement
 ```
 
-2. Configure DB connection (required):
-```bash
-export BANK_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management"
+2. Create two local MySQL databases (one for app data, one for tests):
+```sql
+CREATE DATABASE IF NOT EXISTS bank_account_management;
+CREATE DATABASE IF NOT EXISTS bank_account_management_test;
 ```
 
-You can also store this value in local `.env` (copied from `.env.example`). Do not commit real secrets.
+3. Configure local `.env` in the project root (required):
+```env
+BANK_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management"
+BANK_TEST_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management_test"
+```
 
-3. Build and migrate:
+You can also use shell environment variables instead of `.env`. Do not commit real secrets.
+
+4. Build and migrate:
 ```bash
 dotnet restore BankAccountManagement.slnx
 dotnet build BankAccountManagement.slnx
 dotnet ef database update
 ```
 
-4. Start app:
+5. Start demo run:
 ```bash
 dotnet run
 ```
@@ -71,19 +78,24 @@ Run all tests:
 dotnet test BankAccountManagement.Tests
 ```
 
-MySQL integration tests are currently scaffolded with `Skip` by default.
-
-To run MySQL database tests, set a separate test database connection:
+Run MySQL integration tests only:
 ```bash
-export BANK_TEST_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management_test"
+dotnet test BankAccountManagement.Tests --filter "Category=MySqlIntegration"
 ```
 
-This value can also be stored in local `.env`.
+Current MySQL integration coverage includes:
+- CRUD and update persistence through `AccountController`.
+- TPH discriminator behavior for `Person` and `Company`.
+- Relationship loading (`GetCustomers` with accounts).
+- Deletion behaviors (remove account vs remove customer with related accounts).
+- Database constraint exception paths (`DbUpdateException`) for oversized fields.
 
-Then remove `Skip = ...` from the MySQL tests in `BankAccountManagement.Tests/Controller/AccountControllerTests.cs`.
+MySQL integration tests are grouped into the `MySqlIntegration` collection and run serially to avoid concurrent schema create/drop conflicts on the shared test database.
+The test database may be dropped/cleaned by the integration test lifecycle, so it can appear empty after test runs.
 
 ## Coverage
 Generate and open coverage report (clean run):
+Requires `BANK_TEST_DB_CONNECTION` to be set (via environment variable or local `.env`).
 ```bash
 dotnet tool install -g dotnet-reportgenerator-globaltool
 export PATH="$PATH:$HOME/.dotnet/tools"
@@ -94,3 +106,11 @@ open coverage-report/index.html
 ```
 
 Coverage uses `coverage.runsettings`, which excludes EF migration files from the coverage calculation.
+
+## Verify Data In MySQL
+To inspect data created by the app in the main database:
+```sql
+USE bank_account_management;
+SELECT * FROM customers;
+SELECT * FROM accounts;
+```

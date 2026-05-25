@@ -9,12 +9,12 @@
 1. Unit tests (`BankAccountManagement.Tests/Models`, `Controller`, `Application`, `Persistence`)
 - Scope: domain logic, controller behavior, demo workflow, and local configuration helpers.
 - Fast tests use EF Core InMemory where persistence behavior is needed without MySQL.
-- Run on every commit/PR.
+- Recommended to run before each commit/PR.
 
 2. MySQL integration tests (`BankAccountManagement.Tests/Controller` + `BankAccountManagement.Tests/Persistence`)
 - Scope: `AccountController + BankDbContext + MySQL`.
-- Validate CRUD, TPH mapping, cascade delete, and relationship loading.
-- Run on PR or nightly pipeline.
+- Validate CRUD, update persistence, TPH mapping, cascade delete, relationship loading, and database constraint exceptions (`DbUpdateException` paths).
+- Recommended to run before PR submission (or any release cut).
 
 3. Migration smoke tests
 - Apply migrations to a clean MySQL test schema.
@@ -23,25 +23,26 @@
 4. Coverage
 - Coverage uses `coverage.runsettings`.
 - The coverage report includes project code and excludes EF migration files only.
+- Use Risk Hotspots as a prioritization signal: methods with high cyclomatic complexity should be covered with branch-focused tests first, then simplified through small refactors.
 
 ## Framework and Tooling
 - Single framework: `xUnit` for all tests.
 - Keep one test project: `BankAccountManagement.Tests`.
 - Use traits for filtering integration tests:
   - `Category=MySqlIntegration`
+- MySQL integration tests use `[Collection("MySqlIntegration")]` with `DisableParallelization = true` to avoid schema create/drop races on the shared test database.
 
 ## Running Tests
-1. Unit tests + skipped integration templates:
+1. Full test suite:
 ```bash
 dotnet test BankAccountManagement.Tests
 ```
 
-2. Enable MySQL integration tests:
+2. Run only MySQL integration tests:
 - Set test database connection:
 ```bash
 export BANK_TEST_DB_CONNECTION="server=localhost;uid=<db_user>;pwd=<db_password>;database=bank_account_management_test"
 ```
-- In `Controller/AccountControllerTests.cs`, remove `Skip = ...` from `[Fact]`.
 - Run:
 ```bash
 dotnet test BankAccountManagement.Tests --filter "Category=MySqlIntegration"

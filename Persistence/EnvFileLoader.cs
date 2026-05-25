@@ -32,41 +32,57 @@ public static class EnvFileLoader
   {
     foreach (string rawLine in File.ReadLines(envFilePath))
     {
-      string line = rawLine.Trim();
-
-      // Ignore blank lines and comments so .env files can stay readable.
-      if (line.Length == 0 || line.StartsWith('#'))
+      if (!TryParseKeyValue(rawLine, out string currentKey, out string value))
       {
         continue;
       }
-
-      // Only parse simple KEY=VALUE lines.
-      int separatorIndex = line.IndexOf('=');
-      if (separatorIndex <= 0)
-      {
-        continue;
-      }
-
-      // Extract the key from the left side of KEY=VALUE.
-      string currentKey = line[..separatorIndex].Trim();
 
       if (!string.Equals(currentKey, key, StringComparison.Ordinal))
       {
         continue;
       }
 
-      // Extract the value from the right side of KEY=VALUE.
-      string value = line[(separatorIndex + 1)..].Trim();
-
-      // Support quoted values such as BANK_DB_CONNECTION="server=..."
-      if (value.StartsWith('"') && value.EndsWith('"') && value.Length >= 2)
-      {
-        value = value[1..^1];
-      }
+      value = UnquoteIfNeeded(value);
 
       return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     return null;
+  }
+
+  private static bool TryParseKeyValue(string rawLine, out string key, out string value)
+  {
+    key = string.Empty;
+    value = string.Empty;
+
+    string line = rawLine.Trim();
+
+    // Ignore blank lines and comments so .env files can stay readable.
+    if (line.Length == 0 || line.StartsWith('#'))
+    {
+      return false;
+    }
+
+    // Only parse simple KEY=VALUE lines.
+    int separatorIndex = line.IndexOf('=');
+    if (separatorIndex <= 0)
+    {
+      return false;
+    }
+
+    key = line[..separatorIndex].Trim();
+    value = line[(separatorIndex + 1)..].Trim();
+    return true;
+  }
+
+  private static string UnquoteIfNeeded(string value)
+  {
+    // Support quoted values such as BANK_DB_CONNECTION="server=..."
+    if (value.StartsWith('"') && value.EndsWith('"') && value.Length >= 2)
+    {
+      return value[1..^1];
+    }
+
+    return value;
   }
 }

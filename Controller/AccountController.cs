@@ -154,17 +154,35 @@ public class AccountController
     string? occupation = null,
     string? industry = null)
   {
+    ValidateCustomerNotNull(customer);
+    ApplyCommonCustomerUpdates(customer, name, address, phoneNumber, email);
+    ApplyTypeSpecificCustomerUpdates(customer, dateOfBirth, occupation, industry);
+
+    _context.SaveChanges();
+  }
+
+  private static void ValidateCustomerNotNull(Customer customer)
+  {
     if (customer == null)
     {
       throw new ArgumentException("Customer cannot be null.");
     }
+  }
 
+  private static void ApplyCommonCustomerUpdates(
+    Customer customer,
+    string? name,
+    string? address,
+    string? phoneNumber,
+    string? email)
+  {
     if (name != null)
     {
       if (string.IsNullOrWhiteSpace(name))
       {
         throw new ArgumentException("Customer name cannot be empty.");
       }
+
       customer.Name = name;
     }
 
@@ -174,6 +192,7 @@ public class AccountController
       {
         throw new ArgumentException("Customer address cannot be empty.");
       }
+
       customer.Address = address;
     }
 
@@ -186,38 +205,63 @@ public class AccountController
     {
       customer.Email = email;
     }
+  }
 
+  private static void ApplyTypeSpecificCustomerUpdates(
+    Customer customer,
+    DateTime? dateOfBirth,
+    string? occupation,
+    string? industry)
+  {
     if (customer is Person person)
     {
-      if (dateOfBirth.HasValue)
-      {
-        person.DateOfBirth = dateOfBirth.Value.Date;
-      }
-
-      if (occupation != null)
-      {
-        person.Occupation = occupation;
-      }
-
-      if (industry != null)
-      {
-        throw new ArgumentException("Industry can only be updated for company customers.");
-      }
+      ApplyPersonUpdates(person, dateOfBirth, occupation, industry);
+      return;
     }
-    else if (customer is Company company)
+
+    if (customer is Company company)
     {
-      if (industry != null)
-      {
-        company.Industry = industry;
-      }
+      ApplyCompanyUpdates(company, dateOfBirth, occupation, industry);
+    }
+  }
 
-      if (dateOfBirth.HasValue || occupation != null)
-      {
-        throw new ArgumentException("DateOfBirth and Occupation can only be updated for person customers.");
-      }
+  private static void ApplyPersonUpdates(
+    Person person,
+    DateTime? dateOfBirth,
+    string? occupation,
+    string? industry)
+  {
+    if (dateOfBirth.HasValue)
+    {
+      person.DateOfBirth = dateOfBirth.Value.Date;
     }
 
-    _context.SaveChanges();
+    if (occupation != null)
+    {
+      person.Occupation = occupation;
+    }
+
+    if (industry != null)
+    {
+      throw new ArgumentException("Industry can only be updated for company customers.");
+    }
+  }
+
+  private static void ApplyCompanyUpdates(
+    Company company,
+    DateTime? dateOfBirth,
+    string? occupation,
+    string? industry)
+  {
+    if (industry != null)
+    {
+      company.Industry = industry;
+    }
+
+    if (dateOfBirth.HasValue || occupation != null)
+    {
+      throw new ArgumentException("DateOfBirth and Occupation can only be updated for person customers.");
+    }
   }
 
   /// <summary>
