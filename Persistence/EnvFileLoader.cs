@@ -4,14 +4,32 @@ namespace BankAccountManagement.Persistence;
 // This keeps database credentials out of source code while avoiding an extra dependency.
 public static class EnvFileLoader
 {
-  public static string? GetValue(string key, string envFilePath = ".env")
+  public static string? GetValue(string key, string envFileName = ".env")
   {
-    // Missing .env files are allowed because production or CI can use real environment variables.
-    if (!File.Exists(envFilePath))
+    string? currentDirectory = Directory.GetCurrentDirectory();
+
+    while (!string.IsNullOrWhiteSpace(currentDirectory))
     {
-      return null;
+      string envFilePath = Path.Combine(currentDirectory, envFileName);
+
+      if (File.Exists(envFilePath))
+      {
+        string? value = ReadValueFromFile(key, envFilePath);
+
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+          return value;
+        }
+      }
+
+      currentDirectory = Directory.GetParent(currentDirectory)?.FullName;
     }
 
+    return null;
+  }
+
+  private static string? ReadValueFromFile(string key, string envFilePath)
+  {
     foreach (string rawLine in File.ReadLines(envFilePath))
     {
       string line = rawLine.Trim();
@@ -31,6 +49,7 @@ public static class EnvFileLoader
 
       // Extract the key from the left side of KEY=VALUE.
       string currentKey = line[..separatorIndex].Trim();
+
       if (!string.Equals(currentKey, key, StringComparison.Ordinal))
       {
         continue;
@@ -42,7 +61,6 @@ public static class EnvFileLoader
       // Support quoted values such as BANK_DB_CONNECTION="server=..."
       if (value.StartsWith('"') && value.EndsWith('"') && value.Length >= 2)
       {
-        // Remove the surrounding quote characters.
         value = value[1..^1];
       }
 

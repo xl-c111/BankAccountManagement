@@ -30,12 +30,12 @@ public class DemoRunnerTests : IDisposable
 
     runner.Run();
 
-    Assert.Equal(2, _context.Customers.Count());
-    Assert.Equal(4, _context.Accounts.Count());
+    Assert.Equal(1, _context.Customers.Count());
+    Assert.Equal(2, _context.Accounts.Count());
     Assert.Single(_context.Persons);
-    Assert.Single(_context.Companies);
-    Assert.Equal(2, _context.CheckingAccounts.Count());
-    Assert.Equal(2, _context.SavingsAccounts.Count());
+    Assert.Empty(_context.Companies);
+    Assert.Equal(1, _context.CheckingAccounts.Count());
+    Assert.Equal(1, _context.SavingsAccounts.Count());
   }
 
   [Fact]
@@ -51,6 +51,8 @@ public class DemoRunnerTests : IDisposable
     Assert.Contains("Customer Type: Company", output);
     Assert.Contains("Date Of Birth: 1994-05-12", output);
     Assert.Contains("Next Check Number: 2", output);
+    Assert.Contains("Update demo completed:", output);
+    Assert.Contains("Remove demo completed:", output);
   }
 
   [Fact]
@@ -67,8 +69,8 @@ public class DemoRunnerTests : IDisposable
 
     runner.Run();
 
-    Assert.Equal(3, _context.Customers.Count());
-    Assert.Equal(5, _context.Accounts.Count());
+    Assert.Equal(2, _context.Customers.Count());
+    Assert.Equal(3, _context.Accounts.Count());
     Assert.Contains(_context.Customers, customer => customer.CustomerId > existingCustomer.CustomerId);
     Assert.Contains(_context.Accounts, account => account.AccountId > existingAccount.AccountId);
   }

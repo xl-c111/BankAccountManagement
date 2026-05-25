@@ -113,6 +113,76 @@ public class AccountControllerUnitTests
   }
 
   [Fact]
+  public void UpdateCustomer_ValidInput_UpdatesAndSaves()
+  {
+    Customer customer = _controller.CreateCustomer("Mary", "Melbourne", "person");
+
+    _controller.UpdateCustomer(
+      customer,
+      name: "Mary Jane",
+      address: "Brisbane",
+      phoneNumber: "0400111222",
+      email: "mary@example.com",
+      dateOfBirth: new DateTime(1990, 1, 2),
+      occupation: "Analyst");
+
+    Customer saved = _context.Customers.Single();
+    Assert.Equal("Mary Jane", saved.Name);
+    Assert.Equal("Brisbane", saved.Address);
+    Assert.Equal("0400111222", saved.PhoneNumber);
+    Assert.Equal("mary@example.com", saved.Email);
+    Person savedPerson = Assert.IsType<Person>(saved);
+    Assert.Equal(new DateTime(1990, 1, 2), savedPerson.DateOfBirth);
+    Assert.Equal("Analyst", savedPerson.Occupation);
+  }
+
+  [Fact]
+  public void UpdateCustomer_NullCustomer_Throws()
+  {
+    Assert.Throws<ArgumentException>(() => _controller.UpdateCustomer(null!, name: "Name", address: "Address"));
+  }
+
+  [Fact]
+  public void UpdateCustomer_CompanyIndustry_UpdatesAndSaves()
+  {
+    Customer customer = _controller.CreateCustomer("ACME", "Sydney", "company", "ABN-1", "ACN-1");
+
+    _controller.UpdateCustomer(customer, industry: "Technology");
+
+    Company saved = Assert.IsType<Company>(_context.Customers.Single());
+    Assert.Equal("Technology", saved.Industry);
+  }
+
+  [Fact]
+  public void UpdateCustomer_InvalidTypeSpecificFields_Throws()
+  {
+    Customer person = _controller.CreateCustomer("Mary", "Melbourne", "person");
+    Customer company = _controller.CreateCustomer("ACME", "Sydney", "company", "ABN-2", "ACN-2");
+
+    Assert.Throws<ArgumentException>(() => _controller.UpdateCustomer(person, industry: "Retail"));
+    Assert.Throws<ArgumentException>(() => _controller.UpdateCustomer(company, occupation: "Director"));
+  }
+
+  [Fact]
+  public void UpdateAccount_ValidInput_UpdatesAndSaves()
+  {
+    Customer customer = _controller.CreateCustomer("Mary", "Melbourne", "person");
+    Account account = _controller.CreateAccount(customer, "checking");
+
+    _controller.UpdateAccount(account, newBalance: 888.88, deactivate: true);
+
+    Account saved = _context.Accounts.Single();
+    Assert.Equal(888.88, saved.Balance);
+    Assert.False(saved.IsActive);
+  }
+
+  [Fact]
+  public void UpdateAccount_NullAccount_Throws()
+  {
+    Assert.Throws<ArgumentException>(() => _controller.UpdateAccount(null!, 100));
+  }
+
+  [Fact]
   public void RemoveAccount_RemovesFromListsAndDb()
   {
     Customer customer = _controller.CreateCustomer("Mary", "Melbourne", "person");

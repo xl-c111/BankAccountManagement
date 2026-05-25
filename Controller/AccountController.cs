@@ -133,6 +133,121 @@ public class AccountController
   }
 
   /// <summary>
+  /// Updates customer fields and saves to the database.
+  /// </summary>
+  /// <param name="customer">The customer to update.</param>
+  /// <param name="name">Optional new name.</param>
+  /// <param name="address">Optional new address.</param>
+  /// <param name="phoneNumber">Optional new phone number.</param>
+  /// <param name="email">Optional new email.</param>
+  /// <param name="dateOfBirth">Optional person date of birth.</param>
+  /// <param name="occupation">Optional person occupation.</param>
+  /// <param name="industry">Optional company industry.</param>
+  /// <exception cref="ArgumentException">Thrown when customer is null, values are invalid, or type-specific fields are used for the wrong customer type.</exception>
+  public void UpdateCustomer(
+    Customer customer,
+    string? name = null,
+    string? address = null,
+    string? phoneNumber = null,
+    string? email = null,
+    DateTime? dateOfBirth = null,
+    string? occupation = null,
+    string? industry = null)
+  {
+    if (customer == null)
+    {
+      throw new ArgumentException("Customer cannot be null.");
+    }
+
+    if (name != null)
+    {
+      if (string.IsNullOrWhiteSpace(name))
+      {
+        throw new ArgumentException("Customer name cannot be empty.");
+      }
+      customer.Name = name;
+    }
+
+    if (address != null)
+    {
+      if (string.IsNullOrWhiteSpace(address))
+      {
+        throw new ArgumentException("Customer address cannot be empty.");
+      }
+      customer.Address = address;
+    }
+
+    if (phoneNumber != null)
+    {
+      customer.PhoneNumber = phoneNumber;
+    }
+
+    if (email != null)
+    {
+      customer.Email = email;
+    }
+
+    if (customer is Person person)
+    {
+      if (dateOfBirth.HasValue)
+      {
+        person.DateOfBirth = dateOfBirth.Value.Date;
+      }
+
+      if (occupation != null)
+      {
+        person.Occupation = occupation;
+      }
+
+      if (industry != null)
+      {
+        throw new ArgumentException("Industry can only be updated for company customers.");
+      }
+    }
+    else if (customer is Company company)
+    {
+      if (industry != null)
+      {
+        company.Industry = industry;
+      }
+
+      if (dateOfBirth.HasValue || occupation != null)
+      {
+        throw new ArgumentException("DateOfBirth and Occupation can only be updated for person customers.");
+      }
+    }
+
+    _context.SaveChanges();
+  }
+
+  /// <summary>
+  /// Updates account fields and saves to the database.
+  /// </summary>
+  /// <param name="account">The account to update.</param>
+  /// <param name="newBalance">Optional new account balance.</param>
+  /// <param name="deactivate">When true, marks the account as inactive.</param>
+  /// <exception cref="ArgumentException">Thrown when account is null.</exception>
+  public void UpdateAccount(Account account, double? newBalance = null, bool deactivate = false)
+  {
+    if (account == null)
+    {
+      throw new ArgumentException("Account cannot be null.");
+    }
+
+    if (newBalance.HasValue)
+    {
+      account.CorrectBalance(newBalance.Value);
+    }
+
+    if (deactivate)
+    {
+      account.Deactivate();
+    }
+
+    _context.SaveChanges();
+  }
+
+  /// <summary>
   /// Removes a customer and all accounts owned by that customer.
   /// </summary>
   /// <param name="customer">The customer to remove.</param>

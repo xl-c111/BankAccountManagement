@@ -1,3 +1,4 @@
+using BankAccountManagement.Controller;
 using BankAccountManagement.Models;
 using BankAccountManagement.Persistence;
 
@@ -35,78 +36,82 @@ public class DemoRunner
       Account.SetNextAccountId(nextAccountId);
     }
 
-    // Step 2: Create a person customer and set optional profile fields.
-    Person personCustomer = new Person("Mary Smith", "Melbourne")
-    {
-      PhoneNumber = "0400 111 222",
-      Email = "mary.smith@example.com",
-      DateOfBirth = new DateTime(1994, 5, 12).Date,
-      Occupation = "Analyst"
-    };
+    AccountController controller = new(context);
 
-    // Step 3: Create a person checking account.
-    CheckingAccount personCheckingAccount = new CheckingAccount();
+    // Step 2: Create a person customer and related accounts.
+    Person personCustomer = (Person)controller.CreateCustomer("Mary Smith", "Melbourne", "person");
+    CheckingAccount personCheckingAccount = (CheckingAccount)controller.CreateAccount(personCustomer, "checking");
     personCheckingAccount.Deposit(500);
 
     // Step 3.5: Simulate using one check number.
     // getNextCheckNumber() returns the current number and then increments by 1.
     int personIssuedCheckNumber = personCheckingAccount.GetNextCheckNumber();
 
-    // Step 4: Create a person savings account.
-    SavingsAccount personSavingsAccount = new SavingsAccount(2.5);
+    // Step 3: Create a person savings account.
+    SavingsAccount personSavingsAccount = (SavingsAccount)controller.CreateAccount(personCustomer, "savings");
     personSavingsAccount.Deposit(1000);
-    personSavingsAccount.AddInterest();
 
-    // Step 5: Add both accounts to the person customer.
-    personCustomer.AddAccount(personCheckingAccount);
-    personCustomer.AddAccount(personSavingsAccount);
-
-    // Step 6: Test charge all accounts for person.
+    // Step 4: Test charge all accounts for person.
     // For Person, this should subtract the same amount from every account.
     personCustomer.ChargeAllAccounts(50);
 
-    // Step 7: Create a company customer and set optional profile fields.
-    Company companyCustomer = new Company("Acme Pty Ltd", "Sydney", "ABN-123456789", "ACN-987654321")
-    {
-      PhoneNumber = "02 9000 1234",
-      Email = "accounts@acme.example.com",
-      Industry = "Technology"
-    };
+    controller.UpdateCustomer(
+      personCustomer,
+      phoneNumber: "0400 111 222",
+      email: "mary.smith@example.com",
+      dateOfBirth: new DateTime(1994, 5, 12),
+      occupation: "Analyst");
 
-    // Step 8: Create company accounts.
-    CheckingAccount companyCheckingAccount = new CheckingAccount();
+    // Step 5: Create a company customer and related accounts.
+    Company companyCustomer = (Company)controller.CreateCustomer("Acme Pty Ltd", "Sydney", "company", "ABN-123456789", "ACN-987654321");
+    CheckingAccount companyCheckingAccount = (CheckingAccount)controller.CreateAccount(companyCustomer, "checking");
     companyCheckingAccount.Deposit(2000);
     int companyIssuedCheckNumber = companyCheckingAccount.GetNextCheckNumber();
 
-    SavingsAccount companySavingsAccount = new SavingsAccount(3.2);
+    SavingsAccount companySavingsAccount = (SavingsAccount)controller.CreateAccount(companyCustomer, "savings");
     companySavingsAccount.Deposit(5000);
-    companySavingsAccount.AddInterest();
 
-    // Step 9: Add both accounts to the company customer.
-    companyCustomer.AddAccount(companyCheckingAccount);
-    companyCustomer.AddAccount(companySavingsAccount);
-
-    // Step 10: Test charge all accounts for company.
+    // Step 6: Test charge all accounts for company.
     // For Company, checking is charged normal amount, savings is charged double amount.
     companyCustomer.ChargeAllAccounts(60);
 
-    // Step 11: Add data to EF Core context.
-    context.Customers.Add(personCustomer);
-    context.Customers.Add(companyCustomer);
-    context.Accounts.Add(personCheckingAccount);
-    context.Accounts.Add(personSavingsAccount);
-    context.Accounts.Add(companyCheckingAccount);
-    context.Accounts.Add(companySavingsAccount);
+    controller.UpdateCustomer(
+      companyCustomer,
+      phoneNumber: "02 9000 1234",
+      email: "accounts@acme.example.com",
+      industry: "Technology");
 
-    // Step 12: Save changes to MySQL.
+    // Step 7: Persist balance changes from operations above.
     context.SaveChanges();
 
-    // Step 13: Print results in a standardized format.
+    // Step 8: Print created results.
     Console.WriteLine("Demo data saved to MySQL successfully.");
     Console.WriteLine();
     PrintCustomerSummary(personCustomer, personCheckingAccount, personSavingsAccount, personIssuedCheckNumber);
     Console.WriteLine();
     PrintCustomerSummary(companyCustomer, companyCheckingAccount, companySavingsAccount, companyIssuedCheckNumber);
+
+    // Step 9: Update existing records through controller methods.
+    controller.UpdateCustomer(
+      personCustomer,
+      address: "Brisbane",
+      occupation: "Senior Analyst");
+    controller.UpdateAccount(personCheckingAccount, newBalance: 777.77);
+
+    Console.WriteLine();
+    Console.WriteLine("Update demo completed:");
+    Console.WriteLine($"Updated Person Address: {personCustomer.Address}");
+    Console.WriteLine($"Updated Person Occupation: {personCustomer.Occupation}");
+    Console.WriteLine($"Updated Checking Balance: {personCheckingAccount.Balance:F2}");
+
+    // Step 10: Remove one account and one customer through controller methods.
+    controller.RemoveAccount(companySavingsAccount);
+    controller.RemoveCustomer(companyCustomer);
+
+    Console.WriteLine();
+    Console.WriteLine("Remove demo completed:");
+    Console.WriteLine($"Remaining customers: {context.Customers.Count()}");
+    Console.WriteLine($"Remaining accounts: {context.Accounts.Count()}");
   }
 
   private static void PrintCustomerSummary(
